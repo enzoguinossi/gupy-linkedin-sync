@@ -112,7 +112,7 @@ Modo normal (Atenção)
 
 ⚠️ Esse comando substitui todos os achievements atuais da Gupy pelos dados do LinkedIn.
 ---
-📌 Aviso legal
+## 📌 Aviso legal
 Este projeto:
 - não utiliza APIs públicas oficiais
 - depende de comportamento observado da API privada da Gupy
