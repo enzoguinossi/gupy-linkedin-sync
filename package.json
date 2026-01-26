@@ -1,6 +1,6 @@
 {
   "name": "gupy-sync",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "CLI para sincronizar dados do LinkedIn com a Gupy",
   "type": "module",
 

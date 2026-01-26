@@ -2,6 +2,7 @@ name: Build and Release
 
 permissions:
   contents: write
+  id-token: write
 
 on:
   push:
@@ -18,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm install
@@ -40,6 +42,6 @@ jobs:
           draft: false
 
       - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm logout || true
+          npm publish --access public
