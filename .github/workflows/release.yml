@@ -1,8 +1,8 @@
 name: Build and Release
 
 permissions:
-  contents: write
   id-token: write
+  contents: write
 
 on:
   push:
@@ -18,11 +18,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '24'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Clean dist
         run: rm -rf dist
@@ -41,7 +41,8 @@ jobs:
           files: gupy-linkedin-sync.zip
           draft: false
 
+      - name: Logout npm (cleanup)
+        run: npm logout || true
+
       - name: Publish to npm
-        run: |
-          npm logout || true
-          npm publish --access public
+        run: npm publish --access public
