@@ -20,6 +20,7 @@ jobs:
           node-version: 24
 
       - run: npm install
+      - run: rm -rf dist
       - run: npm run build
 
       - name: Create Release
@@ -27,3 +28,5 @@ jobs:
         with:
           files: |
             dist/**
+          fail_on_unmatched_files: false
+          draft: false
