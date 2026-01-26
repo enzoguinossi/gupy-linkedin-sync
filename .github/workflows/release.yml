@@ -38,3 +38,8 @@ jobs:
         with:
           files: gupy-linkedin-sync.zip
           draft: false
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

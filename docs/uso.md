@@ -3,6 +3,16 @@
 Abaixo estão os comandos disponíveis e suas flags, explicados de forma didática.
 
 ---
+## 🔸 Flags disponíveis
+
+### 1️⃣ ```--token <token>```
+Passa um token para o programa, sem precisar de um .env no diretório aonde ele é executado.
+
+###  2️⃣ ```--debug```
+Exibe stack trace completo em caso de erro.
+
+
+---
 
 ## 🔹 Comandos disponíveis
 
@@ -16,7 +26,7 @@ gupy-sync importar-certificados --csv <caminho_para_csv> [--dry-run]
 
 O que faz:
 - Autentica na Gupy usando seu token
-- Substitui seus certificados da Gupy com os do Linkedin (ou apenas mostra no --dry-run)
+- Substitui seus certificados da Gupy com os do LinkedIn (ou apenas mostra no --dry-run)
 - Mostra mensagem de êxito
 
 **Flags:**
@@ -39,7 +49,7 @@ O que faz:
 - Busca os certificados atuais
 - Mostra o resultado no terminal em JSON legível
 
-### 3️⃣ `importar-formacao`
+### 2️⃣ `importar-formacao`
 
 Substitui a formação acadêmica da Gupy pelos dados do LinkedIn.
 ```bash
@@ -55,7 +65,7 @@ gupy-sync importar-formacao --csv ./Education.csv
 ```
 O que faz:
 - Normaliza os dados do CSV
-- Pergunta interativamente caso algum curso não seja identificavel automaticamente
+- Pergunta interativamente caso algum curso não seja identificável automaticamente
 - Envia a formação completa para a Gupy (ou apenas mostra no --dry-run)
 - Mostra mensagem de êxito
 

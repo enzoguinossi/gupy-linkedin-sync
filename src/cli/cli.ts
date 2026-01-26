@@ -1,3 +1,4 @@
+import packageInfo from './packageInfo.js';
 import { Command, CommanderError } from 'commander';
 
 import { ExitCode, isKnownError } from '../errors/index.js';
@@ -5,8 +6,8 @@ import { ExitCode, isKnownError } from '../errors/index.js';
 import { syncGupyToLinkedin } from '../application/syncLinkedinAchievementsToGupy.js';
 import { getGupyAchievements } from '../application/getGupyAchievements.js';
 import { syncLinkedinEducationToGupy } from '../application/syncLinkedinEducationToGupy.js';
-
 import { cliUserInput } from '../infra/cli/cliUserInput.js';
+import {initEnv} from "../config/env.js";
 
 const program = new Command();
 const userInput = cliUserInput;
@@ -15,7 +16,8 @@ const userInput = cliUserInput;
 program
     .name('gupy-sync')
     .description('Ferramenta de sincronização entre LinkedIn e Gupy')
-    .version('0.2.0')
+    .version(packageInfo.version)
+    .option('--token <token>', 'Token de autenticação da Gupy')
     .option('--debug', 'Exibe o stack trace completo em caso de erro');
 
 
@@ -60,8 +62,14 @@ program
 
 program.exitOverride();
 
-program.parseAsync(process.argv).catch((err) => {
-    const { debug } = program.opts();
+program.hook('preAction', () => {
+    initEnv(program.opts());
+});
+
+try {
+    await program.parseAsync(process.argv);
+} catch (err) {
+    const { debug } = program.opts?.() ?? {};
 
     if (err instanceof CommanderError) {
         console.error(err.message);
@@ -80,4 +88,4 @@ program.parseAsync(process.argv).catch((err) => {
     }
 
     process.exit(ExitCode.UNEXPECTED);
-});
+}
