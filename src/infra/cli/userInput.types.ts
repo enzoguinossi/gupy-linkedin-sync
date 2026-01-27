@@ -1,6 +1,6 @@
-import {GupyEducationTypes} from "../../services/gupy/gupy.education.input.types.js";
+import { GupyEducationTypes } from "../../parsers/gupy/education/gupy.education.types.js";
 
 export interface UserInput {
-    selectFormationType(context: string): Promise<GupyEducationTypes>;
-    askCourseName(context: string): Promise<string>;
+	selectFormationType(context: string): Promise<GupyEducationTypes>;
+	askCourseName(context: string): Promise<string>;
 }

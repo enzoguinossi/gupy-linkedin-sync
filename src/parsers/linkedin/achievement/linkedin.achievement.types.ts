@@ -1,19 +1,26 @@
-import {GupyAchievementTypes} from "../../../services/gupy/gupy.achievement.raw.types.js";
+import { GupyAchievementTypes } from "../../../services/gupy/achievements/gupy.achievement.raw.types.js";
+import { LinkedinDates } from "../shared/linkedin.shared.types.js";
 
-export interface LinkedinAchievementCSVRaw {
-    Name: string;
-    Url?: string;
-    Authority: string;
+export interface LinkedinAchievementRaw {
+	Name: string;
+	Url?: string;
+	Authority: string;
+	"Started On"?: string;
+	"Finished On"?: string;
+	"License Number"?: string;
 }
 
 export interface LinkedinAchievementParsed {
-    Name: string;
-    Url?: string;
-    Authority: string;
+	Name: string;
+	Url?: string;
+	Authority: string;
+	Started_On?: LinkedinDates;
+	Finished_On?: LinkedinDates;
+	License_Number?: string;
 }
 
 export interface LinkedinAchievementDomain {
-    Type: GupyAchievementTypes;
-    Name: string;
-    Description: string;
+	Type: GupyAchievementTypes;
+	Name: string;
+	Description: string;
 }

@@ -11,7 +11,7 @@ Existem três maneiras de instalar o Gupy LinkedIn Sync CLI:
 >```bash
 >GUPY_TOKEN=seu_token_aqui
 >```
->2. Ou passando diretamente no terminal com a flag `--token`:
+>Ou passando diretamente no terminal com a flag `--token`:
 >```bash
 >gupy-sync --token <SEU_TOKEN_AQUI> mostrar-certificados 
 >```

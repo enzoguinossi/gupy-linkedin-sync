@@ -1,14 +1,10 @@
-import { CookieJar } from 'tough-cookie';
-import { env } from '../../config/env.js';
-
+import { CookieJar } from "tough-cookie";
+import { env } from "../../config/env.js";
 
 export async function createGupyCookieJar(): Promise<CookieJar> {
-  const jar = new CookieJar();
+	const jar = new CookieJar();
 
-  await jar.setCookie(
-    `candidate_secure_token=${env.GUPY_TOKEN}`,
-    'https://private-api.gupy.io'
-  );
-  
-  return jar;
+	await jar.setCookie(`candidate_secure_token=${env.GUPY_TOKEN}`, "https://private-api.gupy.io");
+
+	return jar;
 }
