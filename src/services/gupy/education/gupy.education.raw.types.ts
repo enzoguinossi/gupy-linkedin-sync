@@ -14,5 +14,4 @@ export interface GupyFormationRaw {
 export interface GupyFormationsRaw {
 	academicFormation: GupyFormationRaw[];
 	underGraduationDegree: string;
-	"academicFormationCompleted?": boolean;
 }

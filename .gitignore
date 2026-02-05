@@ -6,3 +6,5 @@
 /.CHANGES
 /.prettierignore
 /.prettierrc
+/AGENTS.md
+/eslint.config.ts

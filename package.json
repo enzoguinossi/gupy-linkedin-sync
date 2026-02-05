@@ -1,6 +1,6 @@
 {
 	"name": "gupy-sync",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "CLI para sincronizar dados do LinkedIn com a Gupy",
 	"homepage": "https://github.com/enzoguinossi/gupy-linkedin-sync",
 	"repository": {
@@ -47,7 +47,8 @@
 		"prettier": "^3.8.1",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
-		"typescript-eslint": "^8.54.0"
+		"typescript-eslint": "^8.54.0",
+		"vitest": "^4.0.18"
 	},
 	"engines": {
 		"node": ">=18"

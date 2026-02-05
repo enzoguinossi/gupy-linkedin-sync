@@ -1,9 +1,4 @@
 import { LinkedinDates } from "../shared/linkedin.shared.types.js";
-import {
-	GupyEducationConclusionStatus,
-	GupyEducationTypes,
-	GupyUnderGraduationTypes,
-} from "../../gupy/education/gupy.education.types.js";
 
 export interface LinkedinEducationRaw {
 	"School Name": string;
@@ -19,19 +14,5 @@ export interface LinkedinEducationParsed {
 	Start_Date: LinkedinDates;
 	End_Date: LinkedinDates;
 	Degree_Name?: string;
-}
-
-export type NormalizedEducationRow =
-	| { kind: "underGraduation"; value: GupyUnderGraduationTypes }
-	| { kind: "formation"; value: LinkedinEducationDomain };
-
-export interface LinkedinEducationDomain {
-	formation: GupyEducationTypes | "unknown";
-	conclusionStatus: GupyEducationConclusionStatus;
-	course?: string;
-	institution: string;
-	startDateMonth: number;
-	startDateYear: number;
-	endDateMonth: number;
-	endDateYear: number;
+	Notes?: string;
 }

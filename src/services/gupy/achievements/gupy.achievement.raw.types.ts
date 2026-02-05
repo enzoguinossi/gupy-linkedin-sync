@@ -1,6 +1,8 @@
-export enum GupyAchievementTypes {
-	course = "courses",
-	certificate = "certificates",
+export enum GupyAchievementTypesEnum {
+	certificates = "certificates",
+	courses = "courses",
+	acknowledgements = "acknowledgements",
+	volunteerWork = "volunteer_work",
 }
 
 export interface GupyAchievementRaw {

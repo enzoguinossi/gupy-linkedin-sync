@@ -1,13 +1,9 @@
 import { CsvParseError } from "../../../errors/index.js";
 import { inferSchema, initParser } from "udsv";
-import {
-	LinkedinAchievementDomain,
-	LinkedinAchievementParsed,
-	LinkedinAchievementRaw,
-} from "./linkedin.achievement.types.js";
-import { GupyAchievementTypes } from "../../../services/gupy/achievements/gupy.achievement.raw.types.js";
+import { LinkedinAchievementParsed, LinkedinAchievementRaw } from "./linkedin.achievement.types.js";
 import { readCsv } from "../../../shared/csv/readCsv.js";
-import { parseLinkedinDate } from "../shared/linkedin.date.parser.js";
+import { mapLinkedinMonthToNumber, parseLinkedinDate } from "../shared/linkedin.date.parser.js";
+import { AchievementEntity, AchievementType } from "../../../domain/entities/achievement.entity.js";
 
 function parseRawAchievements(csv: string): LinkedinAchievementRaw[] {
 	const schema = inferSchema(csv);
@@ -26,7 +22,7 @@ function parseAchievements(rawRows: LinkedinAchievementRaw[]): LinkedinAchieveme
 	}));
 }
 
-function normalizeAchievement(row: LinkedinAchievementParsed): LinkedinAchievementDomain {
+function toDomain(row: LinkedinAchievementParsed): AchievementEntity {
 	if (!row.Name?.trim()) {
 		throw new CsvParseError('Linha do CSV inválida: coluna "Name" ausente ou vazia');
 	}
@@ -37,30 +33,37 @@ function normalizeAchievement(row: LinkedinAchievementParsed): LinkedinAchieveme
 		);
 	}
 
-	const descriptionParts: string[] = [];
-	if (row.Authority) descriptionParts.push(`Emitido por: ${row.Authority}`);
-	if (row.Url) {
-		descriptionParts.push(row.Url);
-	} else if (row.License_Number) {
-		descriptionParts.push(`ID da licença: ${row.License_Number}`);
-	}
+	const issueMonth = row.Started_On ? mapLinkedinMonthToNumber(row.Started_On.Month) : undefined;
+	const expirationMonth = row.Finished_On
+		? mapLinkedinMonthToNumber(row.Finished_On.Month)
+		: undefined;
 
 	return {
-		Type: GupyAchievementTypes.course,
-		Name: row.Name.trim(),
-		Description: descriptionParts.join(" | "),
+		name: row.Name.trim(),
+		type: AchievementType.Certification,
+		issuer: row.Authority,
+		url: row.Url,
+		credentialId: row.License_Number,
+		issueDate:
+			row.Started_On && issueMonth
+				? {
+						month: issueMonth,
+						year: row.Started_On.Year,
+					}
+				: undefined,
+		expirationDate:
+			row.Finished_On && expirationMonth
+				? {
+						month: expirationMonth,
+						year: row.Finished_On.Year,
+					}
+				: undefined,
 	};
 }
 
-export function parseLinkedinAchievementsCSV(csvPath: string): LinkedinAchievementDomain[] {
+export function parseLinkedinAchievementsCSV(csvPath: string): AchievementEntity[] {
 	const csvContent = readCsv(csvPath);
 	const rawRows = parseRawAchievements(csvContent);
 	const parsedRows = parseAchievements(rawRows);
-	return parsedRows.map(normalizeAchievement);
-}
-
-export function getParsedLinkedinAchievementsCSV(csvPath: string): LinkedinAchievementParsed[] {
-	const csvContent = readCsv(csvPath);
-	const rawRows = parseRawAchievements(csvContent);
-	return parseAchievements(rawRows);
+	return parsedRows.map(toDomain);
 }

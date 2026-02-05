@@ -1,4 +1,3 @@
-import { GupyAchievementTypes } from "../../../services/gupy/achievements/gupy.achievement.raw.types.js";
 import { LinkedinDates } from "../shared/linkedin.shared.types.js";
 
 export interface LinkedinAchievementRaw {
@@ -17,10 +16,4 @@ export interface LinkedinAchievementParsed {
 	Started_On?: LinkedinDates;
 	Finished_On?: LinkedinDates;
 	License_Number?: string;
-}
-
-export interface LinkedinAchievementDomain {
-	Type: GupyAchievementTypes;
-	Name: string;
-	Description: string;
 }

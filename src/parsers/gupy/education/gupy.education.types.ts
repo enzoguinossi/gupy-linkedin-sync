@@ -9,11 +9,6 @@ export interface GupyEducationParsed {
 	endDateYear: number;
 }
 
-export interface GupyEducationResponseParsed {
-	formations: GupyEducationParsed[];
-	underGraduationDegree?: GupyUnderGraduationTypes;
-}
-
 export enum GupyEducationTypes {
 	technical_course = "technical_course",
 	technological = "technological",

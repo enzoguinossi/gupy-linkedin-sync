@@ -8,13 +8,11 @@ import { getGupyAchievements } from "../application/gupy/getGupyAchievements.js"
 import { syncLinkedinEducationToGupy } from "../application/sync/syncLinkedinEducationToGupy.js";
 import { cliUserInput } from "../infra/cli/cliUserInput.js";
 import { initEnv } from "../config/env.js";
-import { displayGupyAchievements } from "./displayers/gupy/gupy.achievement.displayer.js";
 import { getLinkedinAchievements } from "../application/linkedin/getLinkedinAchievements.js";
 import { getLinkedInFormation } from "../application/linkedin/getLinkedInFormation.js";
-import { displayLinkedinAchievements } from "./displayers/linkedin/linkedin.achievement.displayer.js";
-import { displayLinkedinEducation } from "./displayers/linkedin/linkedin.education.displayer.js";
+import { displayAchievements } from "./displayers/achievement.displayer.js";
+import { displayEducation } from "./displayers/education.displayer.js";
 import { getGupyEducation } from "../application/gupy/getGupyEducation.js";
-import { displayGupyEducation } from "./displayers/gupy/gupy.education.displayer.js";
 
 const program = new Command();
 const userInput = cliUserInput;
@@ -40,7 +38,7 @@ program
 	.description("Exibe os certificados atualmente cadastrados na Gupy")
 	.action(async () => {
 		const data = await getGupyAchievements();
-		displayGupyAchievements(data);
+		displayAchievements(data);
 	});
 
 program
@@ -48,7 +46,7 @@ program
 	.description("Exibe a formação atualmente cadastrada na Gupy")
 	.action(async () => {
 		const data = await getGupyEducation();
-		displayGupyEducation(data);
+		displayEducation(data);
 	});
 
 program
@@ -57,7 +55,7 @@ program
 	.requiredOption("--csv <path>", "Caminho para o CSV exportado do LinkedIn")
 	.action(async (options) => {
 		const data = await getLinkedinAchievements(options.csv);
-		displayLinkedinAchievements(data);
+		displayAchievements(data);
 	});
 
 program
@@ -66,7 +64,7 @@ program
 	.requiredOption("--csv <path>", "Caminho para o CSV exportado do LinkedIn")
 	.action(async (options) => {
 		const data = await getLinkedInFormation(options.csv);
-		displayLinkedinEducation(data);
+		displayEducation(data);
 	});
 
 program

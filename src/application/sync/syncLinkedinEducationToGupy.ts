@@ -4,13 +4,23 @@ import { buildEducationPayload } from "../../services/gupy/payloads/gupy.payload
 import { createGupyClient } from "../../infra/http/gupyClient.factory.js";
 import { normalizeCourseText } from "../../shared/util/normalizeCourseText.js";
 import { GupyEducationInput } from "../../services/gupy/education/gupy.education.input.types.js";
-import { LinkedinEducationDomain } from "../../parsers/linkedin/education/linkedin.education.types.js";
-import { CliError } from "../../errors/index.js";
 import {
 	GupyEducationTypes,
 	GupyUnderGraduationTypes,
 } from "../../parsers/gupy/education/gupy.education.types.js";
+import { EducationEntity } from "../../domain/entities/education.entity.js";
+import {
+	mapEducationLevelToGupy,
+	mapToGupyEducationInput,
+} from "../../services/gupy/education/gupy.education.mapper.js";
 
+/**
+ * Checks if the provided formation type corresponds to an under-graduation level
+ * (e.g., High School, Elementary School).
+ *
+ * @param formationType - The formation type to check.
+ * @returns True if the type is an under-graduation type, false otherwise.
+ */
 function isUnderGraduationType(
 	formationType: GupyEducationTypes | GupyUnderGraduationTypes | "unknown",
 ): formationType is GupyUnderGraduationTypes {
@@ -19,6 +29,14 @@ function isUnderGraduationType(
 	);
 }
 
+/**
+ * Determines whether the current under-graduation degree should be updated with a new type.
+ * Prioritizes "Completed High School" over other types.
+ *
+ * @param current - The current under-graduation degree (if any).
+ * @param newType - The new under-graduation degree candidate.
+ * @returns True if the degree should be updated, false otherwise.
+ */
 function shouldUpdateUnderGraduation(
 	current: GupyUnderGraduationTypes | undefined,
 	newType: GupyUnderGraduationTypes,
@@ -29,40 +47,60 @@ function shouldUpdateUnderGraduation(
 	return !current;
 }
 
+/**
+ * Resolves the Gupy education type for a given education entity.
+ * If the type cannot be automatically mapped, it prompts the user to select one.
+ *
+ * @param entity - The education entity from the domain layer.
+ * @param userInput - The user input interface for CLI interactions.
+ * @returns A promise that resolves to the Gupy education type or under-graduation type.
+ */
 async function resolveFormationType(
-	formation: LinkedinEducationDomain,
+	entity: EducationEntity,
 	userInput: UserInput,
 ): Promise<GupyEducationTypes | GupyUnderGraduationTypes> {
-	if (formation.formation === "unknown") {
-		return await userInput.selectFormationType(formation.institution);
+	const mappedType = mapEducationLevelToGupy(entity.level);
+
+	if (mappedType === "unknown") {
+		return await userInput.selectFormationType(entity.institution);
 	}
-	return formation.formation;
+	return mappedType;
 }
 
-async function resolveCourseName(
-	formation: LinkedinEducationDomain,
-	userInput: UserInput,
-): Promise<string> {
-	if (!formation.course) {
-		const courseName = await userInput.askCourseName(formation.institution);
-		return normalizeCourseText(courseName);
-	}
-	return normalizeCourseText(formation.course);
+/**
+ * @param entity - The education entity from the domain layer.
+ * @param userInput - The user input interface for CLI interactions.
+ * @returns A promise that resolves to the normalized course name.
+ */
+async function resolveCourseName(entity: EducationEntity, userInput: UserInput): Promise<string> {
+	// Always ask for the course name, as LinkedIn's "Degree Name" is often just the degree type (e.g., "Bachelor's")
+	// and not the actual course name (e.g., "Computer Science").
+	const courseName = await userInput.askCourseName(entity.institution);
+	return normalizeCourseText(courseName);
 }
 
+/**
+ * Processes a list of education entities to prepare them for Gupy synchronization.
+ * It resolves types and course names, separates under-graduation degrees, and
+ * constructs the final list of Gupy education inputs.
+ *
+ * @param entities - The list of education entities to process.
+ * @param userInput - The user input interface for CLI interactions.
+ * @returns A promise that resolves to an object containing the final list of formations
+ *          and the determined under-graduation degree.
+ */
 async function processFormations(
-	formations: LinkedinEducationDomain[],
+	entities: EducationEntity[],
 	userInput: UserInput,
-	initialUnderGraduation?: GupyUnderGraduationTypes,
 ): Promise<{
-	finalFormations: LinkedinEducationDomain[];
+	finalFormations: GupyEducationInput[];
 	finalUnderGraduationDegree?: GupyUnderGraduationTypes;
 }> {
-	let finalUnderGraduationDegree = initialUnderGraduation;
-	const finalFormations: LinkedinEducationDomain[] = [];
+	let finalUnderGraduationDegree: GupyUnderGraduationTypes | undefined;
+	const finalFormations: GupyEducationInput[] = [];
 
-	for (const formation of formations) {
-		const formationType = await resolveFormationType(formation, userInput);
+	for (const entity of entities) {
+		const formationType = await resolveFormationType(entity, userInput);
 
 		if (isUnderGraduationType(formationType)) {
 			if (shouldUpdateUnderGraduation(finalUnderGraduationDegree, formationType)) {
@@ -71,38 +109,29 @@ async function processFormations(
 			continue;
 		}
 
-		formation.formation = formationType as GupyEducationTypes;
-		formation.course = await resolveCourseName(formation, userInput);
+		// If we reached here, it is a higher education formation (GupyEducationTypes)
+		const courseName = await resolveCourseName(entity, userInput);
 
-		finalFormations.push(formation);
+		// Update the entity with the normalized course name for the mapper to use
+		const updatedEntity = { ...entity, course: courseName };
+
+		finalFormations.push(
+			mapToGupyEducationInput(updatedEntity, formationType as GupyEducationTypes),
+		);
 	}
+
+	// If there is any higher education formation, assume at least completed high school
 	if (finalFormations.length > 0) {
 		finalUnderGraduationDegree = GupyUnderGraduationTypes.completedHighSchool;
 	}
+
 	return { finalFormations, finalUnderGraduationDegree };
 }
 
-function mapToGupyEducationInput(formations: LinkedinEducationDomain[]): GupyEducationInput[] {
-	return formations.map((f) => {
-		if (f.formation === "unknown") {
-			throw new CliError(
-				`O curso da instituição "${f.institution}" ainda está "unknown".\nSelecione o tipo de formação antes de enviar.`,
-			);
-		}
-
-		return {
-			formation: f.formation as GupyEducationTypes,
-			course: f.course!,
-			conclusionStatus: f.conclusionStatus,
-			institution: f.institution,
-			startDateMonth: f.startDateMonth,
-			startDateYear: String(f.startDateYear),
-			endDateMonth: f.endDateMonth,
-			endDateYear: String(f.endDateYear),
-		};
-	});
-}
-
+/**
+ * Displays a success message to the console after a successful synchronization.
+ * Includes recommendations for manual checks and project support links.
+ */
 function displaySuccessMessage(): void {
 	console.log(`
 🎉 Sucesso!
@@ -130,27 +159,41 @@ Exemplo:
 `);
 }
 
+/**
+ * Displays the result of a dry run to the console.
+ * Shows the payload that would have been sent to Gupy without actually sending it.
+ *
+ * @param payload - The payload object constructed for the Gupy API.
+ */
 function displayDryRunResult(payload: any): void {
 	console.log("🔎 DRY RUN – nenhum dado foi enviado");
 	console.log(JSON.stringify(payload, null, 2));
 }
 
+/**
+ * Main function to synchronize LinkedIn education data to Gupy.
+ * It parses the CSV file, processes the data into Gupy-compatible formats,
+ * and either performs a dry run or sends the data to the Gupy API.
+ *
+ * @param csvPath - The file path to the LinkedIn education CSV.
+ * @param dryRun - If true, performs a dry run without sending data to the API.
+ * @param userInput - The user input interface for CLI interactions.
+ * @returns A promise that resolves when the operation is complete.
+ */
 export async function syncLinkedinEducationToGupy(
 	csvPath: string,
 	dryRun: boolean,
 	userInput: UserInput,
 ) {
-	const { formations, underGraduationDegree: initialUnderGraduation } =
-		parseLinkedinEducationCSV(csvPath);
+	const educationEntities = parseLinkedinEducationCSV(csvPath);
 
 	const { finalFormations, finalUnderGraduationDegree } = await processFormations(
-		formations,
+		educationEntities,
 		userInput,
-		initialUnderGraduation,
 	);
 
 	const payload = buildEducationPayload({
-		formations: mapToGupyEducationInput(finalFormations),
+		formations: finalFormations,
 		underGraduationDegree: finalUnderGraduationDegree,
 	});
 
